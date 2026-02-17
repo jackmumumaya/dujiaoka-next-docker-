@@ -17,7 +17,8 @@
 9. [日常运维命令](#9-日常运维命令)
 10. [数据备份与恢复](#10-数据备份与恢复)
 11. [升级指南](#11-升级指南)
-12. [常见问题排查](#12-常见问题排查)
+12. [支付网关集成](#12-支付网关集成)
+13. [常见问题排查](#13-常见问题排查)
 
 ---
 
@@ -91,7 +92,7 @@ Dujiao-Next 由以下 **4 个服务** 组成：
 
 ---
 
-## 3. 安装 Docker
+## 3. 安装 Docker （有安装docker的直接跳到第4步）
 
 ### 3.1 一键安装 Docker（推荐）
 
@@ -167,88 +168,7 @@ cd /opt/dujiao-next
 
 ### 4.2 上传部署文件到服务器
 
-在你的 **本地 Windows 电脑** 上，先把部署所需的源码文件复制到 `deploy` 目录中。
-
-#### 方法一：使用准备脚本（推荐）
-
-在本地运行 `prepare.sh`（见下面的准备脚本），它会自动把所有文件整理到 `deploy` 目录中。
-
-完整的 `deploy` 目录结构应该如下：
-
-```
-deploy/
-├── docker-compose.yml          # Docker 编排文件
-├── config.yml                  # 后端配置文件（需修改）
-├── deploy.sh                   # 一键部署脚本
-├── backend/
-│   ├── Dockerfile              # 后端镜像构建文件
-│   └── dujiao-next             # ⬅️ Go 后端二进制文件（需要复制进来）
-├── admin/
-│   ├── Dockerfile              # 管理后台镜像构建文件
-│   ├── nginx.conf              # 管理后台 Nginx 配置
-│   ├── .dockerignore
-│   ├── package.json            # ⬅️ 需从 admin 源码复制全部文件
-│   ├── package-lock.json
-│   ├── index.html
-│   ├── vite.config.ts
-│   ├── tsconfig*.json
-│   ├── postcss.config.js
-│   ├── tailwind.config.js
-│   ├── components.json
-│   ├── public/
-│   └── src/
-└── user/
-    ├── Dockerfile              # 用户前端镜像构建文件
-    ├── nginx.conf              # 用户前端 Nginx 配置
-    ├── .dockerignore
-    ├── package.json            # ⬅️ 需从 user 源码复制全部文件
-    ├── package-lock.json
-    ├── index.html
-    ├── vite.config.ts
-    ├── tsconfig*.json
-    ├── postcss.config.js
-    ├── tailwind.config.js
-    ├── public/
-    └── src/
-```
-
-#### 方法二：手动复制文件
-
-需要你手动将各项目的源码复制到对应的目录中：
-
-```bash
-# 在你的本地电脑上操作（Windows PowerShell）
-
-# 1. 复制后端二进制文件到 deploy/backend/
-copy "dujiao-next_v0.0.1-beta_Linux_x86_64\dujiao-next" "dujiao-next_v0.0.1-beta_Linux_x86_64\deploy\backend\"
-
-# 2. 复制管理后台源码到 deploy/admin/（保留 deploy 目录已有的 Dockerfile 和 nginx.conf）
-#    需要复制的文件：package.json, package-lock.json, index.html, vite.config.ts,
-#    tsconfig*.json, postcss.config.js, tailwind.config.js, components.json, src/, public/
-xcopy "admin-0.0.1-beta\admin-0.0.1-beta\src" "dujiao-next_v0.0.1-beta_Linux_x86_64\deploy\admin\src\" /E /I
-xcopy "admin-0.0.1-beta\admin-0.0.1-beta\public" "dujiao-next_v0.0.1-beta_Linux_x86_64\deploy\admin\public\" /E /I
-copy "admin-0.0.1-beta\admin-0.0.1-beta\package.json" "dujiao-next_v0.0.1-beta_Linux_x86_64\deploy\admin\"
-copy "admin-0.0.1-beta\admin-0.0.1-beta\package-lock.json" "dujiao-next_v0.0.1-beta_Linux_x86_64\deploy\admin\"
-copy "admin-0.0.1-beta\admin-0.0.1-beta\index.html" "dujiao-next_v0.0.1-beta_Linux_x86_64\deploy\admin\"
-copy "admin-0.0.1-beta\admin-0.0.1-beta\vite.config.ts" "dujiao-next_v0.0.1-beta_Linux_x86_64\deploy\admin\"
-copy "admin-0.0.1-beta\admin-0.0.1-beta\tsconfig*.json" "dujiao-next_v0.0.1-beta_Linux_x86_64\deploy\admin\"
-copy "admin-0.0.1-beta\admin-0.0.1-beta\postcss.config.js" "dujiao-next_v0.0.1-beta_Linux_x86_64\deploy\admin\"
-copy "admin-0.0.1-beta\admin-0.0.1-beta\tailwind.config.js" "dujiao-next_v0.0.1-beta_Linux_x86_64\deploy\admin\"
-copy "admin-0.0.1-beta\admin-0.0.1-beta\components.json" "dujiao-next_v0.0.1-beta_Linux_x86_64\deploy\admin\"
-
-# 3. 复制用户前端源码到 deploy/user/（同上）
-xcopy "user-main\user-main\src" "dujiao-next_v0.0.1-beta_Linux_x86_64\deploy\user\src\" /E /I
-xcopy "user-main\user-main\public" "dujiao-next_v0.0.1-beta_Linux_x86_64\deploy\user\public\" /E /I
-copy "user-main\user-main\package.json" "dujiao-next_v0.0.1-beta_Linux_x86_64\deploy\user\"
-copy "user-main\user-main\package-lock.json" "dujiao-next_v0.0.1-beta_Linux_x86_64\deploy\user\"
-copy "user-main\user-main\index.html" "dujiao-next_v0.0.1-beta_Linux_x86_64\deploy\user\"
-copy "user-main\user-main\vite.config.ts" "dujiao-next_v0.0.1-beta_Linux_x86_64\deploy\user\"
-copy "user-main\user-main\tsconfig*.json" "dujiao-next_v0.0.1-beta_Linux_x86_64\deploy\user\"
-copy "user-main\user-main\postcss.config.js" "dujiao-next_v0.0.1-beta_Linux_x86_64\deploy\user\"
-copy "user-main\user-main\tailwind.config.js" "dujiao-next_v0.0.1-beta_Linux_x86_64\deploy\user\"
-```
-
-#### 上传到服务器
+请将本地准备好的 `deploy` 目录上传到服务器：
 
 ```bash
 # 使用 scp 上传整个 deploy 目录到服务器
@@ -714,7 +634,19 @@ docker exec dujiao-api wget -qO- http://localhost:9090/health
 
 ---
 
-## 12. 常见问题排查
+## 12. 支付网关集成
+
+### 12.1 BEpusdt 虚拟货币支付 (USDT)
+
+Dujiao-Next 原生支持 **BEpusdt** 网关，可实现 USDT (TRC20/ERC20) 自动收款回调。
+
+- **功能特性**：支持二维码支付、实时汇率转换、自动回调。
+- **集成方式**：通过 Docker Compose 一键启动（需在 `docker-compose.yml` 中取消注释）。
+- **详细指南**：请阅读独立文档 [BEpusdt 集成指南](BEPUSDT.md)
+
+---
+
+## 13. 常见问题排查
 
 ### ❓ Q1: 构建前端镜像时 `npm ci` 报错 / 太慢
 
